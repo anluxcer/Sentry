@@ -50,9 +50,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindingById()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$user = m::mock('Cartalyst\Sentry\Users\Eloquent\User');
@@ -72,7 +72,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testFailedFindingByIdThrowsException()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 
 		$query = m::mock('StdClass');
 		$query->shouldReceive('newQuery')->andReturn($query);
@@ -85,9 +88,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindingByName()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$loginColumn = 'email';
@@ -112,7 +115,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testFailedFindingByNameThrowsException()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 
 		$loginColumn = 'email';
 
@@ -137,7 +143,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 		$user->shouldReceive('getLoginName')->once()->andReturn('foo');
 		$user->shouldReceive('hasGetMutator')->andReturn(false);
 
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 		$provider->shouldReceive('createModel')->once()->andReturn($user);
 
 		$provider->findByCredentials(array(
@@ -162,7 +171,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 		$user->shouldReceive('getHashableAttributes')->once()->andReturn(array('baz', 'bat'));
 		$user->shouldReceive('hasGetMutator')->andReturn(false);
 
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 		$provider->shouldReceive('createModel')->once()->andReturn($user);
 
 		$result = $provider->findByCredentials(array(
@@ -199,8 +211,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 		$user->shouldReceive('getHashableAttributes')->once()->andReturn(array('password'));
 		$user->shouldReceive('hasGetMutator')->andReturn(false);
 
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]');
-		$provider->__construct($hasher);
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]',
+			array($hasher)
+		);
 
 		$provider->shouldReceive('createModel')->once()->andReturn($user);
 
@@ -236,8 +250,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 		$user->shouldReceive('getHashableAttributes')->once()->andReturn(array('baz', 'bat'));
 		$user->shouldReceive('hasGetMutator')->andReturn(false);
 
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]');
-		$provider->__construct($hasher);
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel,getHashableCredentials]',
+			array($hasher)
+			);
 
 		$provider->shouldReceive('createModel')->once()->andReturn($user);
 
@@ -275,9 +291,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindByActivationCode()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$query = m::mock('StdClass');
@@ -303,9 +319,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testFailedFindByActivationCode()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$query = m::mock('StdClass');
@@ -325,9 +341,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindByResetPasswordCode()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$query = m::mock('StdClass');
@@ -353,9 +369,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testFailedFindByResetPasswordCode()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$query = m::mock('StdClass');
@@ -385,10 +401,11 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 		$user->shouldReceive('fill')->with($attributes)->once();
 		$user->shouldReceive('save')->once();
 
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
+
 		$provider->shouldReceive('createModel')->once()->andReturn($user);
 
 		$this->assertEquals($user, $provider->create($attributes));
@@ -396,9 +413,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testGettingEmptyUserInterface()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$user = m::mock('Cartalyst\Sentry\Users\Eloquent\User');
@@ -424,9 +441,9 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindingAllUsers()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[createModel]');
-		$provider->__construct(
-			$hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface')
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[createModel]',
+			array($hasher = m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
 		);
 
 		$provider->shouldReceive('createModel')->once()->andReturn($user = m::mock('Cartalyst\Sentry\Users\Eloquent\User'));
@@ -461,7 +478,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindingAllUsersWithAccess()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[findAll]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[findAll]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 
 		$provider->shouldReceive('findAll')->once()->andReturn(array(
 			$user1 = m::mock('Cartalyst\Sentry\Users\Eloquent\User'),
@@ -478,7 +498,10 @@ class EloquentUserProviderTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindingAllUsersWithAnyAccess()
 	{
-		$provider = m::mock('Cartalyst\Sentry\Users\Eloquent\Provider[findAll]');
+		$provider = m::mock(
+			'Cartalyst\Sentry\Users\Eloquent\Provider[findAll]',
+			array(m::mock('Cartalyst\Sentry\Hashing\HasherInterface'))
+		);
 
 		$provider->shouldReceive('findAll')->once()->andReturn(array(
 			$user1 = m::mock('Cartalyst\Sentry\Users\Eloquent\User'),
