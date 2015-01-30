@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Groups;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,6 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
-
-}
-
-class GroupModelStub2 {
-
-}
+class GroupExistsException extends \UnexpectedValueException {}
+class GroupNotFoundException extends \UnexpectedValueException {}
+class NameRequiredException extends \UnexpectedValueException {}

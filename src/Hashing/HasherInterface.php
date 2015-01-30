@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Hashing;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,23 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
+interface HasherInterface {
 
-}
+	/**
+	 * Hash string.
+	 *
+	 * @param  string  $string
+	 * @return string
+	 */
+	public function hash($string);
 
-class GroupModelStub2 {
+	/**
+	 * Check string against hashed string.
+	 *
+	 * @param  string  $string
+	 * @param  string  $hashedString
+	 * @return bool
+	 */
+	public function checkhash($string, $hashedString);
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Sessions;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,35 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
+interface SessionInterface {
 
-}
+	/**
+	 * Returns the session key.
+	 *
+	 * @return string
+	 */
+	public function getKey();
 
-class GroupModelStub2 {
+	/**
+	 * Put a value in the Sentry session.
+	 *
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function put($value);
+
+	/**
+	 * Get the Sentry session value.
+	 *
+	 * @return mixed
+	 */
+	public function get();
+
+	/**
+	 * Remove the Sentry session.
+	 *
+	 * @return void
+	 */
+	public function forget();
 
 }

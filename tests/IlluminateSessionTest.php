@@ -1,4 +1,7 @@
-<?php namespace Cartalyst\Sentry\Tests;
+<?php
+
+namespace Cartalyst\Sentry\Tests;
+
 /**
  * Part of the Sentry package.
  *
@@ -11,7 +14,7 @@
  * the following URL: http://www.opensource.org/licenses/BSD-3-Clause
  *
  * @package    Sentry
- * @version    2.0.0
+ * @version    3.0.0
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
  * @copyright  (c) 2011 - 2013, Cartalyst LLC

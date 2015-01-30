@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Groups;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,41 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
+interface GroupInterface {
 
-}
+	/**
+	 * Returns the group's ID.
+	 *
+	 * @return mixed
+	 */
+	public function getId();
 
-class GroupModelStub2 {
+	/**
+	 * Returns the group's name.
+	 *
+	 * @return string
+	 */
+	public function getName();
+
+	/**
+	 * Returns permissions for the group.
+	 *
+	 * @return array
+	 */
+	public function getPermissions();
+
+	/**
+	 * Saves the group.
+	 *
+	 * @return bool
+	 */
+	public function save();
+
+	/**
+	 * Delete the group.
+	 *
+	 * @return bool
+	 */
+	public function delete();
 
 }

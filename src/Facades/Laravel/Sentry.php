@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Facades\Laravel;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,18 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
+use Illuminate\Support\Facades\Facade;
 
-}
+class Sentry extends Facade {
 
-class GroupModelStub2 {
+	/**
+	 * Get the registered name of the component.
+	 *
+	 * @return string
+	 */
+	protected static function getFacadeAccessor()
+	{
+		return 'sentry';
+	}
 
 }

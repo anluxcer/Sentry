@@ -1,5 +1,7 @@
 <?php
 
+namespace Cartalyst\Sentry\Hashing;
+
 /**
  * Part of the Sentry package.
  *
@@ -19,10 +21,25 @@
  * @link       http://cartalyst.com
  */
 
-class GroupModelStub1 {
+abstract class BaseHasher {
 
-}
+	/**
+	 * Compares two strings $a and $b in length-constant time.
+	 *
+	 * @param  string  $a
+	 * @param  string  $b
+	 * @return boolean
+	 */
+	final protected function slowEquals($a, $b)
+	{
+		$diff = strlen($a) ^ strlen($b);
 
-class GroupModelStub2 {
+		for($i = 0; $i < strlen($a) && $i < strlen($b); $i++)
+		{
+			$diff |= ord($a[$i]) ^ ord($b[$i]);
+		}
+
+		return $diff === 0;
+	}
 
 }
