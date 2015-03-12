@@ -52,38 +52,6 @@ class EloquentGroupTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $group->getName());
     }
 
-    // public function testSettingPermissions()
-    // {
-    // 	$permissions = array(
-    // 		'foo' => 1,
-    // 		'bar' => 1,
-    // 		'baz' => 1,
-    // 		'qux' => 1,
-    // 	);
-
-    // 	$group = new Group;
-
-    // 	$expected = '{"foo":1,"bar":1,"baz":1,"qux":1}';
-
-    // 	$this->assertEquals($expected, $group->setPermissions($permissions));
-    // }
-
-    // public function testSettingPermissionsWhenSomeAreSetTo0()
-    // {
-    // 	$permissions = array(
-    // 		'foo' => 1,
-    // 		'bar' => 1,
-    // 		'baz' => 0,
-    // 		'qux' => 1,
-    // 	);
-
-    // 	$group = new Group;
-
-    // 	$expected = '{"foo":1,"bar":1,"qux":1}';
-
-    // 	$this->assertEquals($expected, $group->setPermissions($permissions));
-    // }
-
     public function testPermissionsAreMergedAndRemovedProperly()
     {
         $group = new Group();
