@@ -97,9 +97,7 @@ class SentryTest extends PHPUnit_Framework_TestCase {
 
 	public function testLoggingInAndRemembering()
 	{
-		$this->markTestSkipped('Skipped for now');
-
-		$sentry = m::mock('Cartalyst\Sentry\Sentry[login]');
+		$sentry = m::mock('Cartalyst\Sentry\Sentry[login]', array(null, null, null, $this->session));
 		$sentry->shouldReceive('login')->with($user = m::mock('Cartalyst\Sentry\Users\UserInterface'), true)->once();
 		$sentry->loginAndRemember($user);
 	}
@@ -223,15 +221,7 @@ class SentryTest extends PHPUnit_Framework_TestCase {
 
 	public function testAuthenticatingUser()
 	{
-		$params = array(
-			$this->userProvider,
-			$this->groupProvider,
-			$this->throttleProvider,
-			$this->session,
-			$this->cookie,
-		);
-
-		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[login]', $params);
+		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[login]', array($this->userProvider, $this->groupProvider, $this->throttleProvider, $this->session, $this->cookie));
 
 		$credentials = array(
 			'email'    => 'foo@bar.com',
@@ -253,16 +243,7 @@ class SentryTest extends PHPUnit_Framework_TestCase {
 
 	public function testAuthenticatingUserWithThrottling()
 	{
-		$params = array(
-			$this->userProvider,
-			$this->groupProvider,
-			$this->throttleProvider,
-			$this->session,
-			$this->cookie,
-		);
-
-		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[login]', $params);
-
+		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[login]', array($this->userProvider, $this->groupProvider, $this->throttleProvider, $this->session, $this->cookie));
 
 		$credentials = array(
 			'email'    => 'foo@bar.com',
@@ -300,9 +281,7 @@ class SentryTest extends PHPUnit_Framework_TestCase {
 
 	public function testAuthenticatingUserAndRemembering()
 	{
-		$this->markTestSkipped('Skipped for now');
-
-		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[authenticate]');
+		$this->sentry = m::mock('Cartalyst\Sentry\Sentry[authenticate]', array(null, null, null, $this->session));
 
 		$credentials = array(
 			'email'    => 'foo@bar.com',
@@ -497,9 +476,7 @@ class SentryTest extends PHPUnit_Framework_TestCase {
 
 	public function testGetUserWithCheck()
 	{
-		$this->markTestSkipped('Skipped for now');
-
-		$sentry = m::mock('Cartalyst\Sentry\Sentry[check]');
+		$sentry = m::mock('Cartalyst\Sentry\Sentry[check]', array(null, null, null, $this->session));
 		$sentry->shouldReceive('check')->once();
 		$sentry->getUser();
 	}
