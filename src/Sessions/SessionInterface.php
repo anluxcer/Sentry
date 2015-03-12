@@ -11,35 +11,35 @@
 
 namespace Cartalyst\Sentry\Sessions;
 
-interface SessionInterface {
+interface SessionInterface
+{
+    /**
+     * Returns the session key.
+     *
+     * @return string
+     */
+    public function getKey();
 
-	/**
-	 * Returns the session key.
-	 *
-	 * @return string
-	 */
-	public function getKey();
+    /**
+     * Put a value in the Sentry session.
+     *
+     * @param mixed $value
+     *
+     * @return void
+     */
+    public function put($value);
 
-	/**
-	 * Put a value in the Sentry session.
-	 *
-	 * @param  mixed   $value
-	 * @return void
-	 */
-	public function put($value);
+    /**
+     * Get the Sentry session value.
+     *
+     * @return mixed
+     */
+    public function get();
 
-	/**
-	 * Get the Sentry session value.
-	 *
-	 * @return mixed
-	 */
-	public function get();
-
-	/**
-	 * Remove the Sentry session.
-	 *
-	 * @return void
-	 */
-	public function forget();
-
+    /**
+     * Remove the Sentry session.
+     *
+     * @return void
+     */
+    public function forget();
 }

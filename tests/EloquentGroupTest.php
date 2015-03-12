@@ -9,285 +9,283 @@
  * file that was distributed with this source code.
  */
 
-namespace Cartalyst\Sentry\Tests;
+namespace Cartalyst\Sentry\tests;
 
-use Mockery as m;
 use Cartalyst\Sentry\Groups\Eloquent\Group;
+use Mockery as m;
 use PHPUnit_Framework_TestCase;
 
-class EloquentGroupTest extends PHPUnit_Framework_TestCase {
+class EloquentGroupTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * Setup resources and dependencies.
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+    }
 
-	/**
-	 * Setup resources and dependencies.
-	 *
-	 * @return void
-	 */
-	public function setUp()
-	{
+    /**
+     * Close mockery.
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        m::close();
+    }
 
-	}
+    public function testGroupId()
+    {
+        $group = new Group();
+        $group->id = 123;
 
-	/**
-	 * Close mockery.
-	 *
-	 * @return void
-	 */
-	public function tearDown()
-	{
-		m::close();
-	}
+        $this->assertEquals(123, $group->getId());
+    }
 
-	public function testGroupId()
-	{
-		$group = new Group;
-		$group->id = 123;
+    public function testGroupName()
+    {
+        $group = new Group();
+        $group->name = 'foo';
 
-		$this->assertEquals(123, $group->getId());
-	}
+        $this->assertEquals('foo', $group->getName());
+    }
 
-	public function testGroupName()
-	{
-		$group = new Group;
-		$group->name = 'foo';
+    // public function testSettingPermissions()
+    // {
+    // 	$permissions = array(
+    // 		'foo' => 1,
+    // 		'bar' => 1,
+    // 		'baz' => 1,
+    // 		'qux' => 1,
+    // 	);
 
-		$this->assertEquals('foo', $group->getName());
-	}
+    // 	$group = new Group;
 
-	// public function testSettingPermissions()
-	// {
-	// 	$permissions = array(
-	// 		'foo' => 1,
-	// 		'bar' => 1,
-	// 		'baz' => 1,
-	// 		'qux' => 1,
-	// 	);
+    // 	$expected = '{"foo":1,"bar":1,"baz":1,"qux":1}';
 
-	// 	$group = new Group;
+    // 	$this->assertEquals($expected, $group->setPermissions($permissions));
+    // }
 
-	// 	$expected = '{"foo":1,"bar":1,"baz":1,"qux":1}';
+    // public function testSettingPermissionsWhenSomeAreSetTo0()
+    // {
+    // 	$permissions = array(
+    // 		'foo' => 1,
+    // 		'bar' => 1,
+    // 		'baz' => 0,
+    // 		'qux' => 1,
+    // 	);
 
-	// 	$this->assertEquals($expected, $group->setPermissions($permissions));
-	// }
+    // 	$group = new Group;
 
-	// public function testSettingPermissionsWhenSomeAreSetTo0()
-	// {
-	// 	$permissions = array(
-	// 		'foo' => 1,
-	// 		'bar' => 1,
-	// 		'baz' => 0,
-	// 		'qux' => 1,
-	// 	);
+    // 	$expected = '{"foo":1,"bar":1,"qux":1}';
 
-	// 	$group = new Group;
+    // 	$this->assertEquals($expected, $group->setPermissions($permissions));
+    // }
 
-	// 	$expected = '{"foo":1,"bar":1,"qux":1}';
+    public function testPermissionsAreMergedAndRemovedProperly()
+    {
+        $group = new Group();
+        $group->permissions = [
+            'foo' => 1,
+            'bar' => 1,
+        ];
 
-	// 	$this->assertEquals($expected, $group->setPermissions($permissions));
-	// }
+        $group->permissions = [
+            'baz' => 1,
+            'qux' => 1,
+            'foo' => 0,
+        ];
 
-	public function testPermissionsAreMergedAndRemovedProperly()
-	{
-		$group = new Group;
-		$group->permissions = array(
-			'foo' => 1,
-			'bar' => 1,
-		);
+        $expected = [
+            'bar' => 1,
+            'baz' => 1,
+            'qux' => 1,
+        ];
 
-		$group->permissions = array(
-			'baz' => 1,
-			'qux' => 1,
-			'foo' => 0,
-		);
+        $this->assertEquals($expected, $group->permissions);
+    }
 
-		$expected = array(
-			'bar' => 1,
-			'baz' => 1,
-			'qux' => 1,
-		);
+    public function testPermissionsAreCastAsAnArrayWhenTheModelIs()
+    {
+        $group = new Group();
+        $group->name = 'foo';
+        $group->permissions = [
+            'bar' => 1,
+            'baz' => 1,
+            'qux' => 1,
+        ];
 
-		$this->assertEquals($expected, $group->permissions);
-	}
+        $expected = [
+            'name'        => 'foo',
+            'permissions' => [
+                'bar' => 1,
+                'baz' => 1,
+                'qux' => 1,
+            ],
+        ];
 
-	public function testPermissionsAreCastAsAnArrayWhenTheModelIs()
-	{
-		$group = new Group;
-		$group->name = 'foo';
-		$group->permissions = array(
-			'bar' => 1,
-			'baz' => 1,
-			'qux' => 1,
-		);
+        $this->assertEquals($expected, $group->toArray());
+    }
 
-		$expected = array(
-			'name' => 'foo',
-			'permissions' => array(
-				'bar' => 1,
-				'baz' => 1,
-				'qux' => 1,
-			),
-		);
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testExceptionIsThrownForInvalidPermissionsDecoding()
+    {
+        $json = '{"foo":1,"bar:1';
+        $group = new Group();
 
-		$this->assertEquals($expected, $group->toArray());
-	}
+        $group->getPermissionsAttribute($json);
+    }
 
-	/**
-	 * @expectedException InvalidArgumentException
-	 */
-	public function testExceptionIsThrownForInvalidPermissionsDecoding()
-	{
-		$json = '{"foo":1,"bar:1';
-		$group = new Group;
+    /**
+     * Regression test for https://github.com/cartalyst/sentry/issues/103.
+     */
+    public function testSettingPermissionsWhenPermissionsAreStrings()
+    {
+        $group = new Group();
+        $group->permissions = [
+            'admin'    => '1',
+            'foo'      => '0',
+        ];
 
-		$group->getPermissionsAttribute($json);
-	}
+        $expected = [
+            'admin'     => 1,
+        ];
 
-	/**
-	 * Regression test for https://github.com/cartalyst/sentry/issues/103
-	 */
-	public function testSettingPermissionsWhenPermissionsAreStrings()
-	{
-		$group = new Group;
-		$group->permissions = array(
-			'admin'    => '1',
-			'foo'      => '0',
-		);
+        $this->assertEquals($expected, $group->permissions);
+    }
 
-		$expected = array(
-			'admin'     => 1,
-		);
+    /**
+     * Regression test for https://github.com/cartalyst/sentry/issues/103.
+     */
+    public function testSettingPermissionsWhenAllPermissionsAreZero()
+    {
+        $group = new Group();
 
-		$this->assertEquals($expected, $group->permissions);
-	}
+        $group->permissions = [
+            'admin'     => 0,
+        ];
 
-	/**
-	 * Regression test for https://github.com/cartalyst/sentry/issues/103
-	 */
-	public function testSettingPermissionsWhenAllPermissionsAreZero()
-	{
-		$group = new Group;
+        $this->assertEquals([], $group->permissions);
+    }
 
-		$group->permissions = array(
-			'admin'     => 0,
-		);
+    public function testValidation()
+    {
+        $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
+        $group->name = 'foo';
 
-		$this->assertEquals(array(), $group->permissions);
-	}
+        $query = m::mock('StdClass');
+        $query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
+        $query->shouldReceive('first')->once()->andReturn(null);
 
-	public function testValidation()
-	{
-		$group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-		$group->name = 'foo';
+        $group->shouldReceive('newQuery')->once()->andReturn($query);
 
-		$query = m::mock('StdClass');
-		$query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
-		$query->shouldReceive('first')->once()->andReturn(null);
+        $group->validate();
+    }
 
-		$group->shouldReceive('newQuery')->once()->andReturn($query);
+    /**
+     * @expectedException Cartalyst\Sentry\Groups\NameRequiredException
+     */
+    public function testValidationThrowsExceptionForMissingName()
+    {
+        $group = new Group();
+        $group->validate();
+    }
 
-		$group->validate();
-	}
+    /**
+     * @expectedException Cartalyst\Sentry\Groups\GroupExistsException
+     */
+    public function testValidationThrowsExceptionForDuplicateNameOnNonExistent()
+    {
+        $persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
+        $persistedGroup->shouldReceive('getId')->once()->andReturn(123);
 
-	/**
-	 * @expectedException Cartalyst\Sentry\Groups\NameRequiredException
-	 */
-	public function testValidationThrowsExceptionForMissingName()
-	{
-		$group = new Group;
-		$group->validate();
-	}
+        $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
+        $group->name = 'foo';
 
-	/**
-	 * @expectedException Cartalyst\Sentry\Groups\GroupExistsException
-	 */
-	public function testValidationThrowsExceptionForDuplicateNameOnNonExistent()
-	{
-		$persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
-		$persistedGroup->shouldReceive('getId')->once()->andReturn(123);
+        $query = m::mock('StdClass');
+        $query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
+        $query->shouldReceive('first')->once()->andReturn($persistedGroup);
 
-		$group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-		$group->name = 'foo';
+        $group->shouldReceive('newQuery')->once()->andReturn($query);
 
-		$query = m::mock('StdClass');
-		$query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
-		$query->shouldReceive('first')->once()->andReturn($persistedGroup);
+        $group->validate();
+    }
 
-		$group->shouldReceive('newQuery')->once()->andReturn($query);
+    /**
+     * @expectedException Cartalyst\Sentry\Groups\GroupExistsException
+     */
+    public function testValidationThrowsExceptionForDuplicateNameOnExistent()
+    {
+        $persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
+        $persistedGroup->shouldReceive('getId')->once()->andReturn(123);
 
-		$group->validate();
-	}
+        $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
+        $group->id   = 124;
+        $group->name = 'foo';
 
-	/**
-	 * @expectedException Cartalyst\Sentry\Groups\GroupExistsException
-	 */
-	public function testValidationThrowsExceptionForDuplicateNameOnExistent()
-	{
-		$persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
-		$persistedGroup->shouldReceive('getId')->once()->andReturn(123);
+        $query = m::mock('StdClass');
+        $query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
+        $query->shouldReceive('first')->once()->andReturn($persistedGroup);
 
-		$group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-		$group->id   = 124;
-		$group->name = 'foo';
+        $group->shouldReceive('newQuery')->once()->andReturn($query);
 
-		$query = m::mock('StdClass');
-		$query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
-		$query->shouldReceive('first')->once()->andReturn($persistedGroup);
+        $group->validate();
+    }
 
-		$group->shouldReceive('newQuery')->once()->andReturn($query);
+    public function testValidationDoesNotThrowAnExceptionIfPersistedGroupIsThisGroup()
+    {
+        $persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
+        $persistedGroup->shouldReceive('getId')->once()->andReturn(123);
 
-		$group->validate();
-	}
+        $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
+        $group->id   = 123;
+        $group->name = 'foo';
 
-	public function testValidationDoesNotThrowAnExceptionIfPersistedGroupIsThisGroup()
-	{
-		$persistedGroup = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
-		$persistedGroup->shouldReceive('getId')->once()->andReturn(123);
+        $query = m::mock('StdClass');
+        $query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
+        $query->shouldReceive('first')->once()->andReturn($persistedGroup);
 
-		$group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-		$group->id   = 123;
-		$group->name = 'foo';
+        $group->shouldReceive('newQuery')->once()->andReturn($query);
 
-		$query = m::mock('StdClass');
-		$query->shouldReceive('where')->with('name', '=', 'foo')->once()->andReturn($query);
-		$query->shouldReceive('first')->once()->andReturn($persistedGroup);
+        $group->validate();
+    }
 
-		$group->shouldReceive('newQuery')->once()->andReturn($query);
+    public function testPermissionsWithArrayCastingAndJsonCasting()
+    {
+        $group = new Group();
+        $group->name = 'foo';
+        $group->permissions = [
+            'foo' => 1,
+            'bar' => 0,
+            'baz' => 1,
+        ];
 
-		$group->validate();
-	}
+        $expected = [
+            'name'        => 'foo',
+            'permissions' => [
+                'foo' => 1,
+                'baz' => 1,
+            ],
+        ];
 
-	public function testPermissionsWithArrayCastingAndJsonCasting()
-	{
-		$group = new Group;
-		$group->name = 'foo';
-		$group->permissions = array(
-			'foo' => 1,
-			'bar' => 0,
-			'baz' => 1,
-		);
+        $this->assertEquals($expected, $group->toArray());
 
-		$expected = array(
-			'name'        => 'foo',
-			'permissions' => array(
-				'foo' => 1,
-				'baz' => 1,
-			),
-		);
+        $expected = json_encode($expected);
+        $this->assertEquals($expected, (string) $group);
+    }
 
-		$this->assertEquals($expected, $group->toArray());
+    public function testDeletingGroupDetachesAllUserRelationships()
+    {
+        $relationship = m::mock('StdClass');
+        $relationship->shouldReceive('detach')->once();
 
-		$expected = json_encode($expected);
-		$this->assertEquals($expected, (string) $group);
-	}
+        $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[users]');
+        $group->shouldReceive('users')->once()->andReturn($relationship);
 
-	public function testDeletingGroupDetachesAllUserRelationships()
-	{
-		$relationship = m::mock('StdClass');
-		$relationship->shouldReceive('detach')->once();
-
-		$group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[users]');
-		$group->shouldReceive('users')->once()->andReturn($relationship);
-
-		$group->delete();
-	}
-
+        $group->delete();
+    }
 }

@@ -11,6 +11,12 @@
 
 namespace Cartalyst\Sentry\Groups;
 
-class GroupExistsException extends \UnexpectedValueException {}
-class GroupNotFoundException extends \UnexpectedValueException {}
-class NameRequiredException extends \UnexpectedValueException {}
+class GroupExistsException extends \UnexpectedValueException
+{
+}
+class GroupNotFoundException extends \UnexpectedValueException
+{
+}
+class NameRequiredException extends \UnexpectedValueException
+{
+}

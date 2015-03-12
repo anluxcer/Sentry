@@ -9,65 +9,64 @@
  * file that was distributed with this source code.
  */
 
-namespace Cartalyst\Sentry\Tests;
+namespace Cartalyst\Sentry\tests;
 
-use Mockery as m;
 use Cartalyst\Sentry\Sessions\IlluminateSession;
+use Mockery as m;
 use PHPUnit_Framework_TestCase;
 
-class IlluminateSessionTest extends PHPUnit_Framework_TestCase {
+class IlluminateSessionTest extends PHPUnit_Framework_TestCase
+{
+    protected $store;
 
-	protected $store;
+    protected $session;
 
-	protected $session;
+    /**
+     * Setup resources and dependencies.
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        $this->store = m::mock('Illuminate\Session\Store');
+        $this->session = new IlluminateSession($this->store, 'session_name_here');
+    }
 
-	/**
-	 * Setup resources and dependencies.
-	 *
-	 * @return void
-	 */
-	public function setUp()
-	{
-		$this->store = m::mock('Illuminate\Session\Store');
-		$this->session = new IlluminateSession($this->store, 'session_name_here');
-	}
+    /**
+     * Close mockery.
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        m::close();
+    }
 
-	/**
-	 * Close mockery.
-	 *
-	 * @return void
-	 */
-	public function tearDown()
-	{
-		m::close();
-	}
+    public function testOverridingKey()
+    {
+        $this->session = new IlluminateSession($this->store, 'foo');
+        $this->assertEquals('foo', $this->session->getKey());
+    }
 
-	public function testOverridingKey()
-	{
-		$this->session = new IlluminateSession($this->store, 'foo');
-		$this->assertEquals('foo', $this->session->getKey());
-	}
+    public function testPut()
+    {
+        $this->store->shouldReceive('put')->with('session_name_here', 'bar')->once();
 
-	public function testPut()
-	{
-		$this->store->shouldReceive('put')->with('session_name_here', 'bar')->once();
+        $this->session->put('bar');
+    }
 
-		$this->session->put('bar');
-	}
+    public function testGet()
+    {
+        $this->store->shouldReceive('get')->with('session_name_here')->once()->andReturn('bar');
 
-	public function testGet()
-	{
-		$this->store->shouldReceive('get')->with('session_name_here')->once()->andReturn('bar');
+        // Test with default "null" param as well
+        $this->assertEquals('bar', $this->session->get());
+    }
 
-		// Test with default "null" param as well
-		$this->assertEquals('bar', $this->session->get());
-	}
+    public function testForget()
+    {
+        $this->store->shouldReceive('forget')->with('session_name_here')->once();
 
-	public function testForget()
-	{
-		$this->store->shouldReceive('forget')->with('session_name_here')->once();
-
-		$this->session->forget();
-	}
-
+        $this->session->forget();
+    }
 }

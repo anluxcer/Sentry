@@ -9,243 +9,241 @@
  * file that was distributed with this source code.
  */
 
-namespace Cartalyst\Sentry\Tests;
+namespace Cartalyst\Sentry\tests;
 
-use Mockery as m;
 use Cartalyst\Sentry\Throttling\Eloquent\Throttle;
 use DateTime;
+use Mockery as m;
 use PHPUnit_Framework_TestCase;
 
-class EloquentThrottleTest extends PHPUnit_Framework_TestCase {
+class EloquentThrottleTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * Setup resources and dependencies.
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+    }
 
-	/**
-	 * Setup resources and dependencies.
-	 *
-	 * @return void
-	 */
-	public function setUp()
-	{
+    /**
+     * Close mockery.
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        m::close();
+        Throttle::setAttemptLimit(5);
+        Throttle::setSuspensionTime(15);
+    }
 
-	}
+    public function testGettingUserReturnsUserObject()
+    {
+        $user = m::mock('StdClass');
+        $user->shouldReceive('getResults')->once()->andReturn('foo');
 
-	/**
-	 * Close mockery.
-	 *
-	 * @return void
-	 */
-	public function tearDown()
-	{
-		m::close();
-		Throttle::setAttemptLimit(5);
-		Throttle::setSuspensionTime(15);
-	}
+        $throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[user]');
+        $throttle->shouldReceive('user')->once()->andReturn($user);
 
-	public function testGettingUserReturnsUserObject()
-	{
-		$user = m::mock('StdClass');
-		$user->shouldReceive('getResults')->once()->andReturn('foo');
+        $this->assertEquals('foo', $throttle->getUser());
+    }
 
-		$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[user]');
-		$throttle->shouldReceive('user')->once()->andReturn($user);
+    public function testAttemptLimits()
+    {
+        Throttle::setAttemptLimit(15);
+        $this->assertEquals(15, Throttle::getAttemptLimit());
+    }
 
-		$this->assertEquals('foo', $throttle->getUser());
-	}
+    public function testGettingLoginAttemptsWhenNoAttemptHasBeenMadeBefore()
+    {
+        $throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[clearLoginAttemptsIfAllowed]');
+        $throttle->shouldReceive('clearLoginAttemptsIfAllowed')->never();
 
-	public function testAttemptLimits()
-	{
-		Throttle::setAttemptLimit(15);
-		$this->assertEquals(15, Throttle::getAttemptLimit());
-	}
+        $this->assertEquals(0, $throttle->getLoginAttempts());
+        $throttle->attempts = 1;
+        $this->assertEquals(1, $throttle->getLoginAttempts());
+    }
 
-	public function testGettingLoginAttemptsWhenNoAttemptHasBeenMadeBefore()
-	{
-		$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[clearLoginAttemptsIfAllowed]');
-		$throttle->shouldReceive('clearLoginAttemptsIfAllowed')->never();
+    public function testGettingLoginAttemptsResetsIfSuspensionTimeHasPassedSinceLastAttempt()
+    {
+        $throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
+        $this->addMockConnection($throttle);
+        $throttle->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
 
-		$this->assertEquals(0, $throttle->getLoginAttempts());
-		$throttle->attempts = 1;
-		$this->assertEquals(1, $throttle->getLoginAttempts());
-	}
+        // Let's simulate that the suspension time
+        // is 11 minutes however the last attempt was
+        // 10 minutes ago, we'll not reset the attempts
+        Throttle::setSuspensionTime(11);
+        $lastAttemptAt = new DateTime();
+        $lastAttemptAt->modify('-10 minutes');
 
-	public function testGettingLoginAttemptsResetsIfSuspensionTimeHasPassedSinceLastAttempt()
-	{
-		$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
-		$this->addMockConnection($throttle);
-		$throttle->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
+        $throttle->last_attempt_at = $lastAttemptAt->format('Y-m-d H:i:s');
+        $throttle->attempts = 3;
+        $this->assertEquals(3, $throttle->getLoginAttempts());
 
-		// Let's simulate that the suspension time
-		// is 11 minutes however the last attempt was
-		// 10 minutes ago, we'll not reset the attempts
-		Throttle::setSuspensionTime(11);
-		$lastAttemptAt = new DateTime;
-		$lastAttemptAt->modify('-10 minutes');
+        // Suspension time is 9 minutes now,
+        // our attempts shall be reset
+        $throttle->shouldReceive('save')->once();
+        Throttle::setSuspensionTime(9);
+        $this->assertEquals(0, $throttle->getLoginAttempts());
+    }
 
-		$throttle->last_attempt_at = $lastAttemptAt->format('Y-m-d H:i:s');
-		$throttle->attempts = 3;
-		$this->assertEquals(3, $throttle->getLoginAttempts());
+    public function testSuspend()
+    {
+        $connection = m::mock('StdClass');
+        $connection->shouldReceive('getQueryGrammar')->atLeast(1)->andReturn($connection);
+        $connection->shouldReceive('getDateFormat')->atLeast(1)->andReturn('Y-m-d H:i:s');
 
-		// Suspension time is 9 minutes now,
-		// our attempts shall be reset
-		$throttle->shouldReceive('save')->once();
-		Throttle::setSuspensionTime(9);
-		$this->assertEquals(0, $throttle->getLoginAttempts());
-	}
+        $throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save,getConnection]');
+        $throttle->shouldReceive('getConnection')->atLeast(1)->andReturn($connection);
+        $throttle->shouldReceive('save')->once();
 
-	public function testSuspend()
-	{
-		$connection = m::mock('StdClass');
-		$connection->shouldReceive('getQueryGrammar')->atLeast(1)->andReturn($connection);
-		$connection->shouldReceive('getDateFormat')->atLeast(1)->andReturn('Y-m-d H:i:s');
+        $this->assertNull($throttle->suspended_at);
+        $throttle->suspend();
 
-		$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save,getConnection]');;
-		$throttle->shouldReceive('getConnection')->atLeast(1)->andReturn($connection);
-		$throttle->shouldReceive('save')->once();
+        $this->assertNotNull($throttle->suspended_at);
+        $this->assertTrue($throttle->suspended);
+    }
 
-		$this->assertNull($throttle->suspended_at);
-		$throttle->suspend();
+    public function testUnsuspend()
+    {
+        $connection = m::mock('StdClass');
+        $connection->shouldReceive('getQueryGrammar')->atLeast(1)->andReturn($connection);
+        $connection->shouldReceive('getDateFormat')->atLeast(1)->andReturn('Y-m-d H:i:s');
 
-		$this->assertNotNull($throttle->suspended_at);
-		$this->assertTrue($throttle->suspended);
-	}
+        $throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save,getConnection]');
+        $throttle->shouldReceive('getConnection')->atLeast(1)->andReturn($connection);
 
-	public function testUnsuspend()
-	{
-		$connection = m::mock('StdClass');
-		$connection->shouldReceive('getQueryGrammar')->atLeast(1)->andReturn($connection);
-		$connection->shouldReceive('getDateFormat')->atLeast(1)->andReturn('Y-m-d H:i:s');
+        $throttle->shouldReceive('save')->once();
 
-		$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save,getConnection]');;
-		$throttle->shouldReceive('getConnection')->atLeast(1)->andReturn($connection);
+        $lastAttemptAt = new DateTime();
+        $suspendedAt   = new DateTime();
 
-		$throttle->shouldReceive('save')->once();
+        $throttle->attempts        = 3;
+        $throttle->last_attempt_at = $lastAttemptAt;
+        $throttle->suspended       = true;
+        $throttle->suspended_at    = $suspendedAt;
 
-		$lastAttemptAt = new DateTime;
-		$suspendedAt   = new DateTime;
+        $throttle->unsuspend();
 
-		$throttle->attempts        = 3;
-		$throttle->last_attempt_at = $lastAttemptAt;
-		$throttle->suspended       = true;
-		$throttle->suspended_at    = $suspendedAt;
+        $this->assertEquals(0, $throttle->attempts);
+        $this->assertNull($throttle->last_attempt_at);
+        $this->assertFalse($throttle->suspended);
+        $this->assertNull($throttle->suspended_at);
+    }
 
-		$throttle->unsuspend();
+    // public function testIsSuspended()
+    // {
+    // 	$throttle = new Throttle;
+    // 	$this->assertFalse($throttle->isSuspended());
+    // }
 
-		$this->assertEquals(0, $throttle->attempts);
-		$this->assertNull($throttle->last_attempt_at);
-		$this->assertFalse($throttle->suspended);
-		$this->assertNull($throttle->suspended_at);
-	}
-
-	// public function testIsSuspended()
-	// {
-	// 	$throttle = new Throttle;
-	// 	$this->assertFalse($throttle->isSuspended());
-	// }
-
-	// public function testIsSuspendedRemovesSuspensionIfEnoughTimeHasPassed()
-	// {
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
-	// 	$throttle->shouldReceive('save')->once();
-	// 	$throttle->suspended = true;
+    // public function testIsSuspendedRemovesSuspensionIfEnoughTimeHasPassed()
+    // {
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
+    // 	$throttle->shouldReceive('save')->once();
+    // 	$throttle->suspended = true;
 
 
-	// 	// Still suspended
-	// 	$throttle->setSuspensionTime(11);
-	// 	$suspendedAt = new DateTime;
-	// 	$suspendedAt->modify('-10 minutes');
-	// 	$throttle->suspended_at = $suspendedAt;
+    // 	// Still suspended
+    // 	$throttle->setSuspensionTime(11);
+    // 	$suspendedAt = new DateTime;
+    // 	$suspendedAt->modify('-10 minutes');
+    // 	$throttle->suspended_at = $suspendedAt;
 
-	// 	$this->assertTrue($throttle->isSuspended());
+    // 	$this->assertTrue($throttle->isSuspended());
 
-	// 	// Unsuspend time, because suspension time is 9
-	// 	// minutes however we were suspended at 10 minutes
-	// 	// ago
-	// 	$throttle->setSuspensionTime(9);
-	// 	$this->assertFalse($throttle->isSuspended());
-	// }
+    // 	// Unsuspend time, because suspension time is 9
+    // 	// minutes however we were suspended at 10 minutes
+    // 	// ago
+    // 	$throttle->setSuspensionTime(9);
+    // 	$this->assertFalse($throttle->isSuspended());
+    // }
 
-	// public function testAddLoginAttempt()
-	// {
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[suspend,save]');
-	// 	$throttle->shouldReceive('save')->once();
-	// 	$throttle->shouldReceive('suspend')->once();
+    // public function testAddLoginAttempt()
+    // {
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[suspend,save]');
+    // 	$throttle->shouldReceive('save')->once();
+    // 	$throttle->shouldReceive('suspend')->once();
 
-	// 	$throttle->setAttemptLimit(5);
-	// 	$throttle->attempts = 3;
+    // 	$throttle->setAttemptLimit(5);
+    // 	$throttle->attempts = 3;
 
-	// 	$throttle->addLoginAttempt();
-	// 	$this->assertEquals(4, $throttle->getLoginAttempts());
+    // 	$throttle->addLoginAttempt();
+    // 	$this->assertEquals(4, $throttle->getLoginAttempts());
 
-	// 	$throttle->addLoginAttempt();
-	// 	$this->assertEquals(5, $throttle->getLoginAttempts());
-	// }
+    // 	$throttle->addLoginAttempt();
+    // 	$this->assertEquals(5, $throttle->getLoginAttempts());
+    // }
 
-	// public function testBanning()
-	// {
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
-	// 	$throttle->shouldReceive('save')->twice();
+    // public function testBanning()
+    // {
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[save]');
+    // 	$throttle->shouldReceive('save')->twice();
 
-	// 	$throttle->ban();
-	// 	$this->assertTrue($throttle->isBanned());
-	// 	$throttle->unban();
-	// 	$this->assertFalse($throttle->isBanned());
-	// }
+    // 	$throttle->ban();
+    // 	$this->assertTrue($throttle->isBanned());
+    // 	$throttle->unban();
+    // 	$this->assertFalse($throttle->isBanned());
+    // }
 
-	// /**
-	//  * @expectedException Cartalyst\Sentry\Throttling\UserBannedException
-	//  */
-	// public function testCheckingThrowsProperExceptionWhenUserIsBanned()
-	// {
-	// 	$user = m::mock('Cartalyst\Sentry\Users\UserInterface');
-	// 	$user->shouldReceive('getLogin')->once()->andReturn('foo');
+    // /**
+    //  * @expectedException Cartalyst\Sentry\Throttling\UserBannedException
+    //  */
+    // public function testCheckingThrowsProperExceptionWhenUserIsBanned()
+    // {
+    // 	$user = m::mock('Cartalyst\Sentry\Users\UserInterface');
+    // 	$user->shouldReceive('getLogin')->once()->andReturn('foo');
 
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended,getUser]');
-	// 	$throttle->shouldReceive('isBanned')->once()->andReturn(true);
-	// 	$throttle->shouldReceive('isSuspended')->never();
-	// 	$throttle->shouldReceive('getUser')->once()->andReturn($user);
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended,getUser]');
+    // 	$throttle->shouldReceive('isBanned')->once()->andReturn(true);
+    // 	$throttle->shouldReceive('isSuspended')->never();
+    // 	$throttle->shouldReceive('getUser')->once()->andReturn($user);
 
-	// 	$throttle->check();
-	// }
+    // 	$throttle->check();
+    // }
 
-	// /**
-	//  * @expectedException Cartalyst\Sentry\Throttling\UserSuspendedException
-	//  */
-	// public function testCheckingThrowsProperExceptionWhenUserIsSuspended()
-	// {
-	// 	$user = m::mock('Cartalyst\Sentry\Users\UserInterface');
-	// 	$user->shouldReceive('getLogin')->once()->andReturn('foo');
+    // /**
+    //  * @expectedException Cartalyst\Sentry\Throttling\UserSuspendedException
+    //  */
+    // public function testCheckingThrowsProperExceptionWhenUserIsSuspended()
+    // {
+    // 	$user = m::mock('Cartalyst\Sentry\Users\UserInterface');
+    // 	$user->shouldReceive('getLogin')->once()->andReturn('foo');
 
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended,getUser]');
-	// 	$throttle->shouldReceive('isBanned')->once()->andReturn(false);
-	// 	$throttle->shouldReceive('isSuspended')->once()->andReturn(true);
-	// 	$throttle->shouldReceive('getUser')->once()->andReturn($user);
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended,getUser]');
+    // 	$throttle->shouldReceive('isBanned')->once()->andReturn(false);
+    // 	$throttle->shouldReceive('isSuspended')->once()->andReturn(true);
+    // 	$throttle->shouldReceive('getUser')->once()->andReturn($user);
 
-	// 	$throttle->check();
-	// }
+    // 	$throttle->check();
+    // }
 
-	// public function testCheckingWhenUserIsOkay()
-	// {
-	// 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended]');
-	// 	$throttle->shouldReceive('isBanned')->once()->andReturn(false);
-	// 	$throttle->shouldReceive('isSuspended')->once()->andReturn(false);
+    // public function testCheckingWhenUserIsOkay()
+    // {
+    // 	$throttle = m::mock('Cartalyst\Sentry\Throttling\Eloquent\Throttle[isBanned,isSuspended]');
+    // 	$throttle->shouldReceive('isBanned')->once()->andReturn(false);
+    // 	$throttle->shouldReceive('isSuspended')->once()->andReturn(false);
 
-	// 	$this->assertTrue($throttle->check());
-	// }
+    // 	$this->assertTrue($throttle->check());
+    // }
 
-	// public function testEnabling()
-	// {
-	// 	$throttle = new Throttle;
-	// 	$throttle->enable();
-	// 	$this->assertTrue($throttle->isEnabled());
-	// 	$throttle->disable();
-	// 	$this->assertFalse($throttle->isEnabled());
-	// }
+    // public function testEnabling()
+    // {
+    // 	$throttle = new Throttle;
+    // 	$throttle->enable();
+    // 	$this->assertTrue($throttle->isEnabled());
+    // 	$throttle->disable();
+    // 	$this->assertFalse($throttle->isEnabled());
+    // }
 
-	protected function addMockConnection($model)
-	{
-		$model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-		$resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
-		$model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
-		$model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
-	}
-
+    protected function addMockConnection($model)
+    {
+        $model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
+        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
+        $model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
+    }
 }

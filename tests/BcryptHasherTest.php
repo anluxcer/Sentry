@@ -9,50 +9,48 @@
  * file that was distributed with this source code.
  */
 
-namespace Cartalyst\Sentry\Tests;
+namespace Cartalyst\Sentry\tests;
 
-use Mockery as m;
 use Cartalyst\Sentry\Hashing\BcryptHasher as Hasher;
+use Mockery as m;
 use PHPUnit_Framework_TestCase;
 
-class BcryptHasherTest extends PHPUnit_Framework_TestCase {
+class BcryptHasherTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * Setup resources and dependencies.
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+    }
 
-	/**
-	 * Setup resources and dependencies.
-	 *
-	 * @return void
-	 */
-	public function setUp()
-	{
+    /**
+     * Close mockery.
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        m::close();
+    }
 
-	}
+    public function testSaltMatchesLength()
+    {
+        $hasher = new Hasher();
+        $hasher->saltLength = 32;
 
-	/**
-	 * Close mockery.
-	 *
-	 * @return void
-	 */
-	public function tearDown()
-	{
-		m::close();
-	}
+        $this->assertEquals(32, strlen($hasher->createSalt()));
+    }
 
-	public function testSaltMatchesLength()
-	{
-		$hasher = new Hasher;
-		$hasher->saltLength = 32;
+    public function testHashingIsAlwaysCorrect()
+    {
+        $hasher         = new Hasher();
+        $password       = 'f00b@rB@zb@T';
+        $hashedPassword = $hasher->hash($password);
 
-		$this->assertEquals(32, strlen($hasher->createSalt()));
-	}
-
-	public function testHashingIsAlwaysCorrect()
-	{
-		$hasher         = new Hasher;
-		$password       = 'f00b@rB@zb@T';
-		$hashedPassword = $hasher->hash($password);
-
-		$this->assertTrue($hasher->checkhash($password, $hashedPassword));
-		$this->assertFalse($hasher->checkhash($password.'$', $hashedPassword));
-	}
-
+        $this->assertTrue($hasher->checkhash($password, $hashedPassword));
+        $this->assertFalse($hasher->checkhash($password.'$', $hashedPassword));
+    }
 }

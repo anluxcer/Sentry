@@ -11,5 +11,9 @@
 
 namespace Cartalyst\Sentry\Throttling;
 
-class UserBannedException extends \RuntimeException {}
-class UserSuspendedException extends \RuntimeException {}
+class UserBannedException extends \RuntimeException
+{
+}
+class UserSuspendedException extends \RuntimeException
+{
+}

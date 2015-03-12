@@ -11,41 +11,40 @@
 
 namespace Cartalyst\Sentry\Groups;
 
-interface GroupInterface {
+interface GroupInterface
+{
+    /**
+     * Returns the group's ID.
+     *
+     * @return mixed
+     */
+    public function getId();
 
-	/**
-	 * Returns the group's ID.
-	 *
-	 * @return mixed
-	 */
-	public function getId();
+    /**
+     * Returns the group's name.
+     *
+     * @return string
+     */
+    public function getName();
 
-	/**
-	 * Returns the group's name.
-	 *
-	 * @return string
-	 */
-	public function getName();
+    /**
+     * Returns permissions for the group.
+     *
+     * @return array
+     */
+    public function getPermissions();
 
-	/**
-	 * Returns permissions for the group.
-	 *
-	 * @return array
-	 */
-	public function getPermissions();
+    /**
+     * Saves the group.
+     *
+     * @return bool
+     */
+    public function save();
 
-	/**
-	 * Saves the group.
-	 *
-	 * @return bool
-	 */
-	public function save();
-
-	/**
-	 * Delete the group.
-	 *
-	 * @return bool
-	 */
-	public function delete();
-
+    /**
+     * Delete the group.
+     *
+     * @return bool
+     */
+    public function delete();
 }

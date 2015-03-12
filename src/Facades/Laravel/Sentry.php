@@ -13,16 +13,15 @@ namespace Cartalyst\Sentry\Facades\Laravel;
 
 use Illuminate\Support\Facades\Facade;
 
-class Sentry extends Facade {
-
-	/**
-	 * Get the registered name of the component.
-	 *
-	 * @return string
-	 */
-	protected static function getFacadeAccessor()
-	{
-		return 'sentry';
-	}
-
+class Sentry extends Facade
+{
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor()
+    {
+        return 'sentry';
+    }
 }

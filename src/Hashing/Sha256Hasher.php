@@ -11,41 +11,42 @@
 
 namespace Cartalyst\Sentry\Hashing;
 
-class Sha256Hasher extends BaseHasher implements HasherInterface {
+class Sha256Hasher extends BaseHasher implements HasherInterface
+{
+    /**
+     * Salt Length.
+     *
+     * @var int
+     */
+    public $saltLength = 16;
 
-	/**
-	 * Salt Length
-	 *
-	 * @var int
-	 */
-	public $saltLength = 16;
+    /**
+     * Hash string.
+     *
+     * @param string $string
+     *
+     * @return string
+     */
+    public function hash($string)
+    {
+        // Create salt
+        $salt = $this->createSalt();
 
-	/**
-	 * Hash string.
-	 *
-	 * @param  string  $string
-	 * @return string
-	 */
-	public function hash($string)
-	{
-		// Create salt
-		$salt = $this->createSalt();
+        return $salt.hash('sha256', $salt.$string);
+    }
 
-		return $salt.hash('sha256', $salt.$string);
-	}
+    /**
+     * Check string against hashed string.
+     *
+     * @param string $string
+     * @param string $hashedString
+     *
+     * @return bool
+     */
+    public function checkhash($string, $hashedString)
+    {
+        $salt = substr($hashedString, 0, $this->saltLength);
 
-	/**
-	 * Check string against hashed string.
-	 *
-	 * @param  string  $string
-	 * @param  string  $hashedString
-	 * @return bool
-	 */
-	public function checkhash($string, $hashedString)
-	{
-		$salt = substr($hashedString, 0, $this->saltLength);
-
-		return $this->slowEquals(($salt.hash('sha256', $salt.$string)), $hashedString);
-	}
-
+        return $this->slowEquals(($salt.hash('sha256', $salt.$string)), $hashedString);
+    }
 }

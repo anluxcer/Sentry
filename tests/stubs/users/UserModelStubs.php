@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-class UserModelStub1 {
-
+class UserModelStub1
+{
 }
 
-class UserModelStub2 {
-
+class UserModelStub2
+{
 }

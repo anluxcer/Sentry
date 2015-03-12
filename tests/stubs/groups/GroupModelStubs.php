@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-class GroupModelStub1 {
-
+class GroupModelStub1
+{
 }
 
-class GroupModelStub2 {
-
+class GroupModelStub2
+{
 }

@@ -12,457 +12,443 @@
 namespace Cartalyst\Sentry\Throttling\Eloquent;
 
 use Cartalyst\Sentry\Throttling\ThrottleInterface;
-use Cartalyst\Sentry\Throttling\UserSuspendedException;
 use Cartalyst\Sentry\Throttling\UserBannedException;
-use Illuminate\Database\Eloquent\Model;
+use Cartalyst\Sentry\Throttling\UserSuspendedException;
 use DateTime;
+use Illuminate\Database\Eloquent\Model;
 
-class Throttle extends Model implements ThrottleInterface {
+class Throttle extends Model implements ThrottleInterface
+{
+    /**
+     * Throttling status.
+     *
+     * @var bool
+     */
+    protected $enabled = true;
 
-	/**
-	 * Throttling status.
-	 *
-	 * @var bool
-	 */
-	protected $enabled = true;
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'throttle';
 
-	/**
-	 * The table associated with the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'throttle';
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
 
-	/**
-	 * Indicates if the model should be timestamped.
-	 *
-	 * @var bool
-	 */
-	public $timestamps = false;
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    protected $guarded = [];
 
-	/**
-	 * The attributes that aren't mass assignable.
-	 *
-	 * @var array
-	 */
-	protected $guarded = array();
+    /**
+     * The Eloquent user model.
+     *
+     * @var string
+     */
+    protected static $userModel = 'Cartalyst\Sentry\Users\Eloquent\User';
 
-	/**
-	 * The Eloquent user model.
-	 *
-	 * @var string
-	 */
-	protected static $userModel = 'Cartalyst\Sentry\Users\Eloquent\User';
+    /**
+     * Attempt limit.
+     *
+     * @var int
+     */
+    protected static $attemptLimit = 5;
 
+    /**
+     * Suspensions time in minutes.
+     *
+     * @var int
+     */
+    protected static $suspensionTime = 15;
 
-	/**
-	 * Attempt limit.
-	 *
-	 * @var int
-	 */
-	protected static $attemptLimit = 5;
+    /**
+     * Returns the associated user with the throttler.
+     *
+     * @return \Cartalyst\Sentry\Users\UserInterface
+     */
+    public function getUser()
+    {
+        return $this->user()->getResults();
+    }
 
-	/**
-	 * Suspensions time in minutes.
-	 *
-	 * @var int
-	 */
-	protected static $suspensionTime = 15;
+    /**
+     * Get the current amount of attempts.
+     *
+     * @return int
+     */
+    public function getLoginAttempts()
+    {
+        if ($this->attempts > 0 and $this->last_attempt_at) {
+            $this->clearLoginAttemptsIfAllowed();
+        }
 
-	/**
-	 * Returns the associated user with the throttler.
-	 *
-	 * @return \Cartalyst\Sentry\Users\UserInterface
-	 */
-	public function getUser()
-	{
-		return $this->user()->getResults();
-	}
+        return $this->attempts;
+    }
 
-	/**
-	 * Get the current amount of attempts.
-	 *
-	 * @return int
-	 */
-	public function getLoginAttempts()
-	{
-		if ($this->attempts > 0 and $this->last_attempt_at)
-		{
-			$this->clearLoginAttemptsIfAllowed();
-		}
+    /**
+     * Get the number of login attempts a user has left before suspension.
+     *
+     * @return int
+     */
+    public function getRemainingLoginAttempts()
+    {
+        return static::getAttemptLimit() - $this->getLoginAttempts();
+    }
 
-		return $this->attempts;
-	}
+    /**
+     * Add a new login attempt.
+     *
+     * @return void
+     */
+    public function addLoginAttempt()
+    {
+        $this->attempts++;
+        $this->last_attempt_at = $this->freshTimeStamp();
 
-	/**
-	 * Get the number of login attempts a user has left before suspension.
-	 *
-	 * @return int
-	 */
-	public function getRemainingLoginAttempts()
-	{
-		return static::getAttemptLimit() - $this->getLoginAttempts();
-	}
+        if ($this->getLoginAttempts() >= static::$attemptLimit) {
+            $this->suspend();
+        } else {
+            $this->save();
+        }
+    }
 
-	/**
-	 * Add a new login attempt.
-	 *
-	 * @return void
-	 */
-	public function addLoginAttempt()
-	{
-		$this->attempts++;
-		$this->last_attempt_at = $this->freshTimeStamp();
+    /**
+     * Clear all login attempts.
+     *
+     * @return void
+     */
+    public function clearLoginAttempts()
+    {
+        // If our login attempts is already at zero
+        // we do not need to do anything. Additionally,
+        // if we are suspended, we are not going to do
+        // anything either as clearing login attempts
+        // makes us unsuspended. We need to manually
+        // call unsuspend() in order to unsuspend.
+        if ($this->getLoginAttempts() == 0 or $this->suspended) {
+            return;
+        }
 
-		if ($this->getLoginAttempts() >= static::$attemptLimit)
-		{
-			$this->suspend();
-		}
-		else
-		{
-			$this->save();
-		}
-	}
+        $this->attempts        = 0;
+        $this->last_attempt_at = null;
+        $this->suspended       = false;
+        $this->suspended_at    = null;
+        $this->save();
+    }
 
-	/**
-	 * Clear all login attempts
-	 *
-	 * @return void
-	 */
-	public function clearLoginAttempts()
-	{
-		// If our login attempts is already at zero
-		// we do not need to do anything. Additionally,
-		// if we are suspended, we are not going to do
-		// anything either as clearing login attempts
-		// makes us unsuspended. We need to manually
-		// call unsuspend() in order to unsuspend.
-		if ($this->getLoginAttempts() == 0 or $this->suspended)
-		{
-			return;
-		}
+    /**
+     * Suspend the user associated with the throttle.
+     *
+     * @return void
+     */
+    public function suspend()
+    {
+        if (! $this->suspended) {
+            $this->suspended    = true;
+            $this->suspended_at = $this->freshTimeStamp();
+            $this->save();
+        }
+    }
 
-		$this->attempts        = 0;
-		$this->last_attempt_at = null;
-		$this->suspended       = false;
-		$this->suspended_at    = null;
-		$this->save();
-	}
+    /**
+     * Unsuspend the user.
+     *
+     * @return void
+     */
+    public function unsuspend()
+    {
+        if ($this->suspended) {
+            $this->attempts        = 0;
+            $this->last_attempt_at = null;
+            $this->suspended       = false;
+            $this->suspended_at    = null;
+            $this->save();
+        }
+    }
 
-	/**
-	 * Suspend the user associated with the throttle
-	 *
-	 * @return void
-	 */
-	public function suspend()
-	{
-		if ( ! $this->suspended)
-		{
-			$this->suspended    = true;
-			$this->suspended_at = $this->freshTimeStamp();
-			$this->save();
-		}
-	}
+    /**
+     * Check if the user is suspended.
+     *
+     * @return bool
+     */
+    public function isSuspended()
+    {
+        if ($this->suspended and $this->suspended_at) {
+            $this->removeSuspensionIfAllowed();
 
-	/**
-	 * Unsuspend the user.
-	 *
-	 * @return void
-	 */
-	public function unsuspend()
-	{
-		if ($this->suspended)
-		{
-			$this->attempts        = 0;
-			$this->last_attempt_at = null;
-			$this->suspended       = false;
-			$this->suspended_at    = null;
-			$this->save();
-		}
-	}
+            return (bool) $this->suspended;
+        }
 
-	/**
-	 * Check if the user is suspended.
-	 *
-	 * @return bool
-	 */
-	public function isSuspended()
-	{
-		if ($this->suspended and $this->suspended_at)
-		{
-			$this->removeSuspensionIfAllowed();
-			return (bool) $this->suspended;
-		}
+        return false;
+    }
 
-		return false;
-	}
+    /**
+     * Ban the user.
+     *
+     * @return void
+     */
+    public function ban()
+    {
+        if (! $this->banned) {
+            $this->banned = true;
+            $this->banned_at = $this->freshTimeStamp();
+            $this->save();
+        }
+    }
 
-	/**
-	 * Ban the user.
-	 *
-	 * @return void
-	 */
-	public function ban()
-	{
-		if ( ! $this->banned)
-		{
-			$this->banned = true;
-			$this->banned_at = $this->freshTimeStamp();
-			$this->save();
-		}
-	}
+    /**
+     * Unban the user.
+     *
+     * @return void
+     */
+    public function unban()
+    {
+        if ($this->banned) {
+            $this->banned = false;
+            $this->banned_at = null;
+            $this->save();
+        }
+    }
 
-	/**
-	 * Unban the user.
-	 *
-	 * @return void
-	 */
-	public function unban()
-	{
-		if ($this->banned)
-		{
-			$this->banned = false;
-			$this->banned_at = null;
-			$this->save();
-		}
-	}
+    /**
+     * Check if user is banned.
+     *
+     * @return bool
+     */
+    public function isBanned()
+    {
+        return $this->banned;
+    }
 
-	/**
-	 * Check if user is banned
-	 *
-	 * @return bool
-	 */
-	public function isBanned()
-	{
-		return $this->banned;
-	}
+    /**
+     * Check user throttle status.
+     *
+     * @throws \Cartalyst\Sentry\Throttling\UserBannedException
+     * @throws \Cartalyst\Sentry\Throttling\UserSuspendedException
+     *
+     * @return bool
+     */
+    public function check()
+    {
+        if ($this->isBanned()) {
+            throw new UserBannedException(sprintf(
+                'User [%s] has been banned.',
+                $this->getUser()->getLogin()
+            ));
+        }
 
-	/**
-	 * Check user throttle status.
-	 *
-	 * @return bool
-	 * @throws \Cartalyst\Sentry\Throttling\UserBannedException
-	 * @throws \Cartalyst\Sentry\Throttling\UserSuspendedException
-	 */
-	public function check()
-	{
-		if ($this->isBanned())
-		{
-			throw new UserBannedException(sprintf(
-				'User [%s] has been banned.',
-				$this->getUser()->getLogin()
-			));
-		}
+        if ($this->isSuspended()) {
+            throw new UserSuspendedException(sprintf(
+                'User [%s] has been suspended.',
+                $this->getUser()->getLogin()
+            ));
+        }
 
-		if ($this->isSuspended())
-		{
-			throw new UserSuspendedException(sprintf(
-				'User [%s] has been suspended.',
-				$this->getUser()->getLogin()
-			));
-		}
+        return true;
+    }
 
-		return true;
-	}
+    /**
+     * Set the Eloquent model to use for user relationships.
+     *
+     * @param string $model
+     *
+     * @return void
+     */
+    public static function setUserModel($model)
+    {
+        static::$userModel = $model;
+    }
 
-	/**
-	 * Set the Eloquent model to use for user relationships.
-	 *
-	 * @param  string  $model
-	 * @return void
-	 */
-	public static function setUserModel($model)
-	{
-		static::$userModel = $model;
-	}
+    /**
+     * User relationship for the throttle.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(static::$userModel, 'user_id');
+    }
 
+    /**
+     * Inspects the last attempt vs the suspension time
+     * (the time in which attempts must space before the
+     * account is suspended). If we can clear our attempts
+     * now, we'll do so and save.
+     *
+     * @return void
+     */
+    public function clearLoginAttemptsIfAllowed()
+    {
+        $lastAttempt = clone $this->last_attempt_at;
 
-	/**
-	 * User relationship for the throttle.
-	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-	 */
-	public function user()
-	{
-		return $this->belongsTo(static::$userModel, 'user_id');
-	}
+        $suspensionTime  = static::$suspensionTime;
+        $clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
+        $now             = $this->freshTimestamp();
 
-	/**
-	 * Inspects the last attempt vs the suspension time
-	 * (the time in which attempts must space before the
-	 * account is suspended). If we can clear our attempts
-	 * now, we'll do so and save.
-	 *
-	 * @return void
-	 */
-	public function clearLoginAttemptsIfAllowed()
-	{
-		$lastAttempt = clone $this->last_attempt_at;
+        if ($clearAttemptsAt <= $now) {
+            $this->attempts = 0;
+            $this->save();
+        }
 
-		$suspensionTime  = static::$suspensionTime;
-		$clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
-		$now             = $this->freshTimestamp();
+        unset($lastAttempt);
+        unset($clearAttemptsAt);
+        unset($now);
+    }
 
-		if ($clearAttemptsAt <= $now)
-		{
-			$this->attempts = 0;
-			$this->save();
-		}
+    /**
+     * Inspects to see if the user can become unsuspended
+     * or not, based on the suspension time provided. If so,
+     * unsuspends.
+     *
+     * @return void
+     */
+    public function removeSuspensionIfAllowed()
+    {
+        $suspended = clone $this->suspended_at;
 
-		unset($lastAttempt);
-		unset($clearAttemptsAt);
-		unset($now);
-	}
+        $suspensionTime = static::$suspensionTime;
+        $unsuspendAt    = $suspended->modify("+{$suspensionTime} minutes");
+        $now            = $this->freshTimestamp();
 
-	/**
-	 * Inspects to see if the user can become unsuspended
-	 * or not, based on the suspension time provided. If so,
-	 * unsuspends.
-	 *
-	 * @return void
-	 */
-	public function removeSuspensionIfAllowed()
-	{
-		$suspended = clone $this->suspended_at;
+        if ($unsuspendAt <= $now) {
+            $this->unsuspend();
+        }
 
-		$suspensionTime = static::$suspensionTime;
-		$unsuspendAt    = $suspended->modify("+{$suspensionTime} minutes");
-		$now            = $this->freshTimestamp();
+        unset($suspended);
+        unset($unsuspendAt);
+        unset($now);
+    }
 
-		if ($unsuspendAt <= $now)
-		{
-			$this->unsuspend();
-		}
+    /**
+     * Get mutator for the suspended property.
+     *
+     * @param mixed $suspended
+     *
+     * @return bool
+     */
+    public function getSuspendedAttribute($suspended)
+    {
+        return (bool) $suspended;
+    }
 
-		unset($suspended);
-		unset($unsuspendAt);
-		unset($now);
-	}
+    /**
+     * Get mutator for the banned property.
+     *
+     * @param mixed $banned
+     *
+     * @return bool
+     */
+    public function getBannedAttribute($banned)
+    {
+        return (bool) $banned;
+    }
 
-	/**
-	 * Get mutator for the suspended property.
-	 *
-	 * @param  mixed  $suspended
-	 * @return bool
-	 */
-	public function getSuspendedAttribute($suspended)
-	{
-		return (bool) $suspended;
-	}
+    /**
+     * Get the attributes that should be converted to dates.
+     *
+     * @return array
+     */
+    public function getDates()
+    {
+        return array_merge(parent::getDates(), ['last_attempt_at', 'suspended_at', 'banned_at']);
+    }
 
-	/**
-	 * Get mutator for the banned property.
-	 *
-	 * @param  mixed  $banned
-	 * @return bool
-	 */
-	public function getBannedAttribute($banned)
-	{
-		return (bool) $banned;
-	}
+    /**
+     * Convert the model instance to an array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $result = parent::toArray();
 
-	/**
-	 * Get the attributes that should be converted to dates.
-	 *
-	 * @return array
-	 */
-	public function getDates()
-	{
-		return array_merge(parent::getDates(), array('last_attempt_at', 'suspended_at', 'banned_at'));
-	}
+        if (isset($result['suspended'])) {
+            $result['suspended'] = $this->getSuspendedAttribute($result['suspended']);
+        }
+        if (isset($result['banned'])) {
+            $result['banned'] = $this->getBannedAttribute($result['banned']);
+        }
+        if (isset($result['last_attempt_at']) and $result['last_attempt_at'] instanceof DateTime) {
+            $result['last_attempt_at'] = $result['last_attempt_at']->format('Y-m-d H:i:s');
+        }
+        if (isset($result['suspended_at']) and $result['suspended_at'] instanceof DateTime) {
+            $result['suspended_at'] = $result['suspended_at']->format('Y-m-d H:i:s');
+        }
 
-	/**
-	 * Convert the model instance to an array.
-	 *
-	 * @return array
-	 */
-	public function toArray()
-	{
-		$result = parent::toArray();
+        return $result;
+    }
 
-		if (isset($result['suspended']))
-		{
-			$result['suspended'] = $this->getSuspendedAttribute($result['suspended']);
-		}
-		if (isset($result['banned']))
-		{
-			$result['banned'] = $this->getBannedAttribute($result['banned']);
-		}
-		if (isset($result['last_attempt_at']) and $result['last_attempt_at'] instanceof DateTime)
-		{
-			$result['last_attempt_at'] = $result['last_attempt_at']->format('Y-m-d H:i:s');
-		}
-		if (isset($result['suspended_at']) and $result['suspended_at'] instanceof DateTime)
-		{
-			$result['suspended_at'] = $result['suspended_at']->format('Y-m-d H:i:s');
-		}
+    /**
+     * Set attempt limit.
+     *
+     * @param int $limit
+     */
+    public static function setAttemptLimit($limit)
+    {
+        static::$attemptLimit = (int) $limit;
+    }
 
-		return $result;
-	}
+    /**
+     * Get attempt limit.
+     *
+     * @return int
+     */
+    public static function getAttemptLimit()
+    {
+        return static::$attemptLimit;
+    }
 
-	/**
-	 * Set attempt limit.
-	 *
-	 * @param  int  $limit
-	 */
-	public static function setAttemptLimit($limit)
-	{
-		static::$attemptLimit = (int) $limit;
-	}
+    /**
+     * Set suspension time.
+     *
+     * @param int $minutes
+     */
+    public static function setSuspensionTime($minutes)
+    {
+        static::$suspensionTime = (int) $minutes;
+    }
 
-	/**
-	 * Get attempt limit.
-	 *
-	 * @return  int
-	 */
-	public static function getAttemptLimit()
-	{
-		return static::$attemptLimit;
-	}
+    /**
+     * Get suspension time.
+     *
+     * @return int
+     */
+    public static function getSuspensionTime()
+    {
+        return static::$suspensionTime;
+    }
 
-	/**
-	 * Set suspension time.
-	 *
-	 * @param  int  $minutes
-	 */
-	public static function setSuspensionTime($minutes)
-	{
-		static::$suspensionTime = (int) $minutes;
-	}
+    /**
+     * Get the remaining time on a suspension in minutes rounded up. Returns
+     * 0 if user is not suspended.
+     *
+     * @return int
+     */
+    public function getRemainingSuspensionTime()
+    {
+        if (!$this->isSuspended()) {
+            return 0;
+        }
 
-	/**
-	 * Get suspension time.
-	 *
-	 * @return  int
-	 */
-	public static function getSuspensionTime()
-	{
-		return static::$suspensionTime;
-	}
+        $lastAttempt = clone $this->last_attempt_at;
 
-	/**
-	 * Get the remaining time on a suspension in minutes rounded up. Returns
-	 * 0 if user is not suspended.
-	 *
-	 * @return int
-	 */
-	public function getRemainingSuspensionTime()
-	{
-		if(!$this->isSuspended())
-			return 0;
+        $suspensionTime  = static::$suspensionTime;
+        $clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
+        $now             = $this->freshTimestamp();
 
-		$lastAttempt = clone $this->last_attempt_at;
+        $timeLeft = $clearAttemptsAt->diff($now);
 
-		$suspensionTime  = static::$suspensionTime;
-		$clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
-		$now             = $this->freshTimestamp();
+        $minutesLeft = ($timeLeft->s != 0 ?
+                        ($timeLeft->days * 24 * 60) + ($timeLeft->h * 60) + ($timeLeft->i) + 1 :
+                        ($timeLeft->days * 24 * 60) + ($timeLeft->h * 60) + ($timeLeft->i));
 
-		$timeLeft = $clearAttemptsAt->diff($now);
-
-		$minutesLeft = ($timeLeft->s != 0 ?
-						($timeLeft->days * 24 * 60) + ($timeLeft->h * 60) + ($timeLeft->i) + 1 :
-						($timeLeft->days * 24 * 60) + ($timeLeft->h * 60) + ($timeLeft->i));
-
-		return $minutesLeft;
-	}
+        return $minutesLeft;
+    }
 }

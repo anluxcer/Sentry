@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Cartalyst\Sentry\Tests;
+namespace Cartalyst\Sentry\tests;
 
-use Mockery as m;
 use Cartalyst\Sentry\Hashing\WhirlpoolHasher as Hasher;
+use Mockery as m;
 use PHPUnit_Framework_TestCase;
 
-class WhirlpoolHasherTest extends PHPUnit_Framework_TestCase {
-
+class WhirlpoolHasherTest extends PHPUnit_Framework_TestCase
+{
     /**
      * Setup resources and dependencies.
      *
@@ -24,7 +24,6 @@ class WhirlpoolHasherTest extends PHPUnit_Framework_TestCase {
      */
     public function setUp()
     {
-
     }
 
     /**
@@ -39,7 +38,7 @@ class WhirlpoolHasherTest extends PHPUnit_Framework_TestCase {
 
     public function testSaltMatchesLength()
     {
-        $hasher = new Hasher;
+        $hasher = new Hasher();
         $hasher->saltLength = 32;
 
         $this->assertEquals(32, strlen($hasher->createSalt()));
@@ -47,12 +46,11 @@ class WhirlpoolHasherTest extends PHPUnit_Framework_TestCase {
 
     public function testHashingIsAlwaysCorrect()
     {
-        $hasher         = new Hasher;
+        $hasher         = new Hasher();
         $password       = 'f00b@rB@zb@T';
         $hashedPassword = $hasher->hash($password);
 
         $this->assertTrue($hasher->checkhash($password, $hashedPassword));
         $this->assertFalse($hasher->checkhash($password.'$', $hashedPassword));
     }
-
 }
