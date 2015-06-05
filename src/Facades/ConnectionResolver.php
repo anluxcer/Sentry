@@ -63,8 +63,8 @@ class ConnectionResolver implements ConnectionResolverInterface
      */
     public function __construct(PDO $pdo, $driverName, $tablePrefix = '')
     {
-        $this->pdo         = $pdo;
-        $this->driverName  = $driverName;
+        $this->pdo = $pdo;
+        $this->driverName = $driverName;
         $this->tablePrefix = $tablePrefix;
     }
 

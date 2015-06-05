@@ -12,7 +12,6 @@
 namespace Cartalyst\Sentry\Throttling\Eloquent;
 
 use Cartalyst\Sentry\Throttling\ProviderInterface;
-use Cartalyst\Sentry\Throttling\ThrottleInterface;
 use Cartalyst\Sentry\Users\ProviderInterface as UserProviderInterface;
 use Cartalyst\Sentry\Users\UserInterface;
 
@@ -77,7 +76,7 @@ class Provider implements ProviderInterface
             });
         }
 
-        if (! $throttle = $query->first()) {
+        if (!$throttle = $query->first()) {
             $throttle = $this->createModel();
             $throttle->user_id = $userId;
             if ($ipAddress) {

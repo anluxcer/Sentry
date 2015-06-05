@@ -108,12 +108,12 @@ class Sentry
         CookieInterface $cookie = null,
         $ipAddress = null
     ) {
-        $this->userProvider     = $userProvider ?: new UserProvider(new NativeHasher());
-        $this->groupProvider    = $groupProvider ?: new GroupProvider();
+        $this->userProvider = $userProvider ?: new UserProvider(new NativeHasher());
+        $this->groupProvider = $groupProvider ?: new GroupProvider();
         $this->throttleProvider = $throttleProvider ?: new ThrottleProvider($this->userProvider);
 
-        $this->session          = $session ?: new NativeSession();
-        $this->cookie           = $cookie ?: new NativeCookie();
+        $this->session = $session ?: new NativeSession();
+        $this->cookie = $cookie ?: new NativeCookie();
 
         if (isset($ipAddress)) {
             $this->ipAddress = $ipAddress;
@@ -229,13 +229,13 @@ class Sentry
     {
         if (is_null($this->user)) {
             // Check session first, follow by cookie
-            if (! $userArray = $this->session->get() and ! $userArray = $this->cookie->get()) {
+            if (!$userArray = $this->session->get() and !$userArray = $this->cookie->get()) {
                 return false;
             }
 
             // Now check our user is an array with two elements,
             // the username followed by the persist code
-            if (! is_array($userArray) or count($userArray) !== 2) {
+            if (!is_array($userArray) or count($userArray) !== 2) {
                 return false;
             }
 
@@ -252,7 +252,7 @@ class Sentry
             // against the user. If it fails, somebody has tampered
             // with the cookie / session data and we're not allowing
             // a login
-            if (! $user->checkPersistCode($persistCode)) {
+            if (!$user->checkPersistCode($persistCode)) {
                 return false;
             }
 
@@ -261,7 +261,7 @@ class Sentry
         }
 
         // Let's check our cached user is indeed activated
-        if (! $user = $this->getUser() or ! $user->isActivated()) {
+        if (!$user = $this->getUser() or !$user->isActivated()) {
             return false;
         }
         // If throttling is enabled we check it's status
@@ -292,7 +292,7 @@ class Sentry
      */
     public function login(UserInterface $user, $remember = false)
     {
-        if (! $user->isActivated()) {
+        if (!$user->isActivated()) {
             $login = $user->getLogin();
             throw new UserNotActivatedException("Cannot login user [$login] as they are not activated.");
         }

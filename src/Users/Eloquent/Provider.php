@@ -14,7 +14,6 @@ namespace Cartalyst\Sentry\Users\Eloquent;
 use Cartalyst\Sentry\Groups\GroupInterface;
 use Cartalyst\Sentry\Hashing\HasherInterface;
 use Cartalyst\Sentry\Users\ProviderInterface;
-use Cartalyst\Sentry\Users\UserInterface;
 use Cartalyst\Sentry\Users\UserNotFoundException;
 use Cartalyst\Sentry\Users\WrongPasswordException;
 
@@ -66,7 +65,7 @@ class Provider implements ProviderInterface
     {
         $model = $this->createModel();
 
-        if (! $user = $model->newQuery()->find($id)) {
+        if (!$user = $model->newQuery()->find($id)) {
             throw new UserNotFoundException("A user could not be found with ID [$id].");
         }
 
@@ -86,7 +85,7 @@ class Provider implements ProviderInterface
     {
         $model = $this->createModel();
 
-        if (! $user = $model->newQuery()->where($model->getLoginName(), '=', $login)->first()) {
+        if (!$user = $model->newQuery()->where($model->getLoginName(), '=', $login)->first()) {
             throw new UserNotFoundException("A user could not be found with a login value of [$login].");
         }
 
@@ -104,18 +103,18 @@ class Provider implements ProviderInterface
      */
     public function findByCredentials(array $credentials)
     {
-        $model     = $this->createModel();
+        $model = $this->createModel();
         $loginName = $model->getLoginName();
 
-        if (! array_key_exists($loginName, $credentials)) {
+        if (!array_key_exists($loginName, $credentials)) {
             throw new \InvalidArgumentException("Login attribute [$loginName] was not provided.");
         }
 
         $passwordName = $model->getPasswordName();
 
-        $query              = $model->newQuery();
+        $query = $model->newQuery();
         $hashableAttributes = $model->getHashableAttributes();
-        $hashedCredentials  = [];
+        $hashedCredentials = [];
 
         // build query from given credentials
         foreach ($credentials as $credential => $value) {
@@ -128,13 +127,13 @@ class Provider implements ProviderInterface
             }
         }
 
-        if (! $user = $query->first()) {
-            throw new UserNotFoundException("A user was not found with the given credentials.");
+        if (!$user = $query->first()) {
+            throw new UserNotFoundException('A user was not found with the given credentials.');
         }
 
         // Now check the hashed credentials match ours
         foreach ($hashedCredentials as $credential => $value) {
-            if (! $this->hasher->checkhash($value, $user->{$credential})) {
+            if (!$this->hasher->checkhash($value, $user->{$credential})) {
                 $message = "A user was found to match all plain text credentials however hashed credential [$credential] did not match.";
 
                 if ($credential == $passwordName) {
@@ -169,8 +168,8 @@ class Provider implements ProviderInterface
      */
     public function findByActivationCode($code)
     {
-        if (! $code) {
-            throw new \InvalidArgumentException("No activation code passed.");
+        if (!$code) {
+            throw new \InvalidArgumentException('No activation code passed.');
         }
 
         $model = $this->createModel();
@@ -181,8 +180,8 @@ class Provider implements ProviderInterface
             throw new \RuntimeException("Found [$count] users with the same activation code.");
         }
 
-        if (! $user = $result->first()) {
-            throw new UserNotFoundException("A user was not found with the given activation code.");
+        if (!$user = $result->first()) {
+            throw new UserNotFoundException('A user was not found with the given activation code.');
         }
 
         return $user;
@@ -208,8 +207,8 @@ class Provider implements ProviderInterface
             throw new \RuntimeException("Found [$count] users with the same reset password code.");
         }
 
-        if (! $user = $result->first()) {
-            throw new UserNotFoundException("A user was not found with the given reset password code.");
+        if (!$user = $result->first()) {
+            throw new UserNotFoundException('A user was not found with the given reset password code.');
         }
 
         return $user;

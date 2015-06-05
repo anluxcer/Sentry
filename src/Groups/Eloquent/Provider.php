@@ -11,7 +11,6 @@
 
 namespace Cartalyst\Sentry\Groups\Eloquent;
 
-use Cartalyst\Sentry\Groups\GroupInterface;
 use Cartalyst\Sentry\Groups\GroupNotFoundException;
 use Cartalyst\Sentry\Groups\ProviderInterface;
 
@@ -51,7 +50,7 @@ class Provider implements ProviderInterface
     {
         $model = $this->createModel();
 
-        if (! $group = $model->newQuery()->find($id)) {
+        if (!$group = $model->newQuery()->find($id)) {
             throw new GroupNotFoundException("A group could not be found with ID [$id].");
         }
 
@@ -71,7 +70,7 @@ class Provider implements ProviderInterface
     {
         $model = $this->createModel();
 
-        if (! $group = $model->newQuery()->where('name', '=', $name)->first()) {
+        if (!$group = $model->newQuery()->where('name', '=', $name)->first()) {
             throw new GroupNotFoundException("A group could not be found with the name [$name].");
         }
 

@@ -11,7 +11,6 @@
 
 namespace Cartalyst\Sentry\tests;
 
-use Cartalyst\Sentry\Sessions\NativeSession;
 use Mockery as m;
 use PHPUnit_Framework_TestCase;
 use stdClass;

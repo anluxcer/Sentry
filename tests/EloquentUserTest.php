@@ -66,7 +66,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
         $pivot = m::mock('StdClass');
         $pivot->shouldReceive('get')->once()->andReturn('foo');
 
-        $user  = m::mock('Cartalyst\Sentry\Users\Eloquent\User[groups]');
+        $user = m::mock('Cartalyst\Sentry\Users\Eloquent\User[groups]');
         $user->shouldReceive('groups')->once()->andReturn($pivot);
 
         $this->assertEquals('foo', $user->getGroups());
@@ -89,7 +89,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     public function testAddingToGroupChecksIfAlreadyInThatGroup()
     {
         $group = m::mock('Cartalyst\Sentry\Groups\GroupInterface');
-        $user  = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups]');
+        $user = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups]');
         $user->shouldReceive('inGroup')->with($group)->once()->andReturn(true);
         $user->shouldReceive('groups')->never();
 
@@ -103,7 +103,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
         $relationship = m::mock('StdClass');
         $relationship->shouldReceive('attach')->with($group)->once();
 
-        $user  = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups,invalidateMergedPermissionsCache,invalidateUserGroupsCache]');
+        $user = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups,invalidateMergedPermissionsCache,invalidateUserGroupsCache]');
         $user->shouldReceive('inGroup')->once()->andReturn(false);
         $user->shouldReceive('groups')->once()->andReturn($relationship);
         $user->shouldReceive('invalidateUserGroupsCache')->once();
@@ -119,7 +119,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
         $relationship = m::mock('StdClass');
         $relationship->shouldReceive('detach')->with($group)->once();
 
-        $user  = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups,invalidateMergedPermissionsCache,invalidateUserGroupsCache]');
+        $user = m::mock('Cartalyst\Sentry\Users\Eloquent\User[inGroup,groups,invalidateMergedPermissionsCache,invalidateUserGroupsCache]');
         $user->shouldReceive('inGroup')->once()->andReturn(true);
         $user->shouldReceive('groups')->once()->andReturn($relationship);
         $user->shouldReceive('invalidateUserGroupsCache')->once();
@@ -163,7 +163,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
 
     public function testSuperUserHasAccessToEverything()
     {
-        $user  = m::mock('Cartalyst\Sentry\Users\Eloquent\User[isSuperUser]');
+        $user = m::mock('Cartalyst\Sentry\Users\Eloquent\User[isSuperUser]');
         $user->shouldReceive('isSuperUser')->once()->andReturn(true);
 
         $this->assertTrue($user->hasAccess('bar'));

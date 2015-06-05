@@ -38,8 +38,8 @@ class NativeHasherTest extends PHPUnit_Framework_TestCase
 
     public function testHashingIsAlwaysCorrect()
     {
-        $hasher         = new Hasher();
-        $password       = 'f00b@rB@zb@T';
+        $hasher = new Hasher();
+        $password = 'f00b@rB@zb@T';
         $hashedPassword = $hasher->hash($password);
 
         $this->assertTrue($hasher->checkhash($password, $hashedPassword));

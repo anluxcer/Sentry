@@ -119,12 +119,12 @@ class EloquentThrottleTest extends PHPUnit_Framework_TestCase
         $throttle->shouldReceive('save')->once();
 
         $lastAttemptAt = new DateTime();
-        $suspendedAt   = new DateTime();
+        $suspendedAt = new DateTime();
 
-        $throttle->attempts        = 3;
+        $throttle->attempts = 3;
         $throttle->last_attempt_at = $lastAttemptAt;
-        $throttle->suspended       = true;
-        $throttle->suspended_at    = $suspendedAt;
+        $throttle->suspended = true;
+        $throttle->suspended_at = $suspendedAt;
 
         $throttle->unsuspend();
 

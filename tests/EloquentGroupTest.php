@@ -192,7 +192,7 @@ class EloquentGroupTest extends PHPUnit_Framework_TestCase
         $persistedGroup->shouldReceive('getId')->once()->andReturn(123);
 
         $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-        $group->id   = 124;
+        $group->id = 124;
         $group->name = 'foo';
 
         $query = m::mock('StdClass');
@@ -210,7 +210,7 @@ class EloquentGroupTest extends PHPUnit_Framework_TestCase
         $persistedGroup->shouldReceive('getId')->once()->andReturn(123);
 
         $group = m::mock('Cartalyst\Sentry\Groups\Eloquent\Group[newQuery]');
-        $group->id   = 123;
+        $group->id = 123;
         $group->name = 'foo';
 
         $query = m::mock('StdClass');

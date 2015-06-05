@@ -103,7 +103,7 @@ class Group extends Model implements GroupInterface
     {
         $groupPermissions = $this->getPermissions();
 
-        if (! is_array($permissions)) {
+        if (!is_array($permissions)) {
             $permissions = (array) $permissions;
         }
 
@@ -273,7 +273,7 @@ class Group extends Model implements GroupInterface
      */
     public function getPermissionsAttribute($permissions)
     {
-        if (! $permissions) {
+        if (!$permissions) {
             return [];
         }
 
@@ -281,7 +281,7 @@ class Group extends Model implements GroupInterface
             return $permissions;
         }
 
-        if (! $_permissions = json_decode($permissions, true)) {
+        if (!$_permissions = json_decode($permissions, true)) {
             throw new \InvalidArgumentException("Cannot JSON decode permissions [$permissions].");
         }
 
@@ -305,7 +305,7 @@ class Group extends Model implements GroupInterface
         // Loop through and adjust permissions as needed
         foreach ($permissions as $permission => &$value) {
             // Lets make sure their is a valid permission value
-            if (! in_array($value = (int) $value, $this->allowedPermissionsValues)) {
+            if (!in_array($value = (int) $value, $this->allowedPermissionsValues)) {
                 throw new \InvalidArgumentException("Invalid value [$value] for permission [$permission] given.");
             }
 
@@ -315,7 +315,7 @@ class Group extends Model implements GroupInterface
             }
         }
 
-        $this->attributes['permissions'] = (! empty($permissions)) ? json_encode($permissions) : '';
+        $this->attributes['permissions'] = (!empty($permissions)) ? json_encode($permissions) : '';
     }
 
     /**
@@ -346,8 +346,8 @@ class Group extends Model implements GroupInterface
     public function validate()
     {
         // Check if name field was passed
-        if (! $name = $this->name) {
-            throw new NameRequiredException("A name is required for a group, none given.");
+        if (!$name = $this->name) {
+            throw new NameRequiredException('A name is required for a group, none given.');
         }
 
         // Check if group already exists

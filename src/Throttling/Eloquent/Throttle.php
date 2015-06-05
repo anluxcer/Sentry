@@ -136,10 +136,10 @@ class Throttle extends Model implements ThrottleInterface
             return;
         }
 
-        $this->attempts        = 0;
+        $this->attempts = 0;
         $this->last_attempt_at = null;
-        $this->suspended       = false;
-        $this->suspended_at    = null;
+        $this->suspended = false;
+        $this->suspended_at = null;
         $this->save();
     }
 
@@ -150,8 +150,8 @@ class Throttle extends Model implements ThrottleInterface
      */
     public function suspend()
     {
-        if (! $this->suspended) {
-            $this->suspended    = true;
+        if (!$this->suspended) {
+            $this->suspended = true;
             $this->suspended_at = $this->freshTimeStamp();
             $this->save();
         }
@@ -165,10 +165,10 @@ class Throttle extends Model implements ThrottleInterface
     public function unsuspend()
     {
         if ($this->suspended) {
-            $this->attempts        = 0;
+            $this->attempts = 0;
             $this->last_attempt_at = null;
-            $this->suspended       = false;
-            $this->suspended_at    = null;
+            $this->suspended = false;
+            $this->suspended_at = null;
             $this->save();
         }
     }
@@ -196,7 +196,7 @@ class Throttle extends Model implements ThrottleInterface
      */
     public function ban()
     {
-        if (! $this->banned) {
+        if (!$this->banned) {
             $this->banned = true;
             $this->banned_at = $this->freshTimeStamp();
             $this->save();
@@ -288,9 +288,9 @@ class Throttle extends Model implements ThrottleInterface
     {
         $lastAttempt = clone $this->last_attempt_at;
 
-        $suspensionTime  = static::$suspensionTime;
+        $suspensionTime = static::$suspensionTime;
         $clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
-        $now             = $this->freshTimestamp();
+        $now = $this->freshTimestamp();
 
         if ($clearAttemptsAt <= $now) {
             $this->attempts = 0;
@@ -314,8 +314,8 @@ class Throttle extends Model implements ThrottleInterface
         $suspended = clone $this->suspended_at;
 
         $suspensionTime = static::$suspensionTime;
-        $unsuspendAt    = $suspended->modify("+{$suspensionTime} minutes");
-        $now            = $this->freshTimestamp();
+        $unsuspendAt = $suspended->modify("+{$suspensionTime} minutes");
+        $now = $this->freshTimestamp();
 
         if ($unsuspendAt <= $now) {
             $this->unsuspend();
@@ -439,9 +439,9 @@ class Throttle extends Model implements ThrottleInterface
 
         $lastAttempt = clone $this->last_attempt_at;
 
-        $suspensionTime  = static::$suspensionTime;
+        $suspensionTime = static::$suspensionTime;
         $clearAttemptsAt = $lastAttempt->modify("+{$suspensionTime} minutes");
-        $now             = $this->freshTimestamp();
+        $now = $this->freshTimestamp();
 
         $timeLeft = $clearAttemptsAt->diff($now);
 

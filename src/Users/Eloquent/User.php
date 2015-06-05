@@ -207,7 +207,7 @@ class User extends Model implements UserInterface
      */
     public function getPermissionsAttribute($permissions)
     {
-        if (! $permissions) {
+        if (!$permissions) {
             return [];
         }
 
@@ -215,7 +215,7 @@ class User extends Model implements UserInterface
             return $permissions;
         }
 
-        if (! $_permissions = json_decode($permissions, true)) {
+        if (!$_permissions = json_decode($permissions, true)) {
             throw new \InvalidArgumentException("Cannot JSON decode permissions [$permissions].");
         }
 
@@ -237,7 +237,7 @@ class User extends Model implements UserInterface
         // Loop through and adjust permissions as needed
         foreach ($permissions as $permission => &$value) {
             // Lets make sure there is a valid permission value
-            if (! in_array($value = (int) $value, $this->allowedPermissionsValues)) {
+            if (!in_array($value = (int) $value, $this->allowedPermissionsValues)) {
                 throw new \InvalidArgumentException("Invalid value [$value] for permission [$permission] given.");
             }
 
@@ -247,7 +247,7 @@ class User extends Model implements UserInterface
             }
         }
 
-        $this->attributes['permissions'] = (! empty($permissions)) ? json_encode($permissions) : '';
+        $this->attributes['permissions'] = (!empty($permissions)) ? json_encode($permissions) : '';
     }
 
     /**
@@ -273,11 +273,11 @@ class User extends Model implements UserInterface
      */
     public function validate()
     {
-        if (! $login = $this->{static::$loginAttribute}) {
-            throw new LoginRequiredException("A login is required for a user, none given.");
+        if (!$login = $this->{static::$loginAttribute}) {
+            throw new LoginRequiredException('A login is required for a user, none given.');
         }
 
-        if (! $password = $this->getPassword()) {
+        if (!$password = $this->getPassword()) {
             throw new PasswordRequiredException("A password is required for user [$login], none given.");
         }
 
@@ -346,7 +346,7 @@ class User extends Model implements UserInterface
      */
     public function checkPersistCode($persistCode)
     {
-        if (! $persistCode) {
+        if (!$persistCode) {
             return false;
         }
 
@@ -386,8 +386,8 @@ class User extends Model implements UserInterface
 
         if ($activationCode == $this->activation_code) {
             $this->activation_code = null;
-            $this->activated       = true;
-            $this->activated_at    = $this->freshTimestamp();
+            $this->activated = true;
+            $this->activated_at = $this->freshTimestamp();
 
             return $this->save();
         }
@@ -477,7 +477,7 @@ class User extends Model implements UserInterface
      */
     public function getGroups()
     {
-        if (! $this->userGroups) {
+        if (!$this->userGroups) {
             $this->userGroups = $this->groups()->get();
         }
 
@@ -509,7 +509,7 @@ class User extends Model implements UserInterface
      */
     public function addGroup(GroupInterface $group)
     {
-        if (! $this->inGroup($group)) {
+        if (!$this->inGroup($group)) {
             $this->groups()->attach($group);
             $this->invalidateUserGroupsCache();
             $this->invalidateMergedPermissionsCache();
@@ -562,7 +562,7 @@ class User extends Model implements UserInterface
      */
     public function getMergedPermissions()
     {
-        if (! $this->mergedPermissions) {
+        if (!$this->mergedPermissions) {
             $permissions = [];
 
             foreach ($this->getGroups() as $group) {
@@ -620,7 +620,7 @@ class User extends Model implements UserInterface
     {
         $mergedPermissions = $this->getMergedPermissions();
 
-        if (! is_array($permissions)) {
+        if (!is_array($permissions)) {
             $permissions = (array) $permissions;
         }
 
@@ -775,8 +775,8 @@ class User extends Model implements UserInterface
      */
     public function checkHash($string, $hashedString)
     {
-        if (! static::$hasher) {
-            throw new \RuntimeException("A hasher has not been provided for the user.");
+        if (!static::$hasher) {
+            throw new \RuntimeException('A hasher has not been provided for the user.');
         }
 
         return static::$hasher->checkHash($string, $hashedString);
@@ -793,8 +793,8 @@ class User extends Model implements UserInterface
      */
     public function hash($string)
     {
-        if (! static::$hasher) {
-            throw new \RuntimeException("A hasher has not been provided for the user.");
+        if (!static::$hasher) {
+            throw new \RuntimeException('A hasher has not been provided for the user.');
         }
 
         return static::$hasher->hash($string);
@@ -850,7 +850,7 @@ class User extends Model implements UserInterface
     public function setAttribute($key, $value)
     {
         // Hash required fields when necessary
-        if (in_array($key, $this->hashableAttributes) and ! empty($value)) {
+        if (in_array($key, $this->hashableAttributes) and !empty($value)) {
             $value = $this->hash($value);
         }
 

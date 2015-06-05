@@ -138,16 +138,16 @@ class NativeCookie implements CookieInterface
     public function setCookie($value, $lifetime, $path = null, $domain = null, $secure = null, $httpOnly = null)
     {
         // Default parameters
-        if (! isset($path)) {
-            $path     = $this->defaults['path'];
+        if (!isset($path)) {
+            $path = $this->defaults['path'];
         }
-        if (! isset($domain)) {
-            $domain   = $this->defaults['domain'];
+        if (!isset($domain)) {
+            $domain = $this->defaults['domain'];
         }
-        if (! isset($secure)) {
-            $secure   = $this->defaults['secure'];
+        if (!isset($secure)) {
+            $secure = $this->defaults['secure'];
         }
-        if (! isset($httpOnly)) {
+        if (!isset($httpOnly)) {
             $httpOnly = $this->defaults['http_only'];
         }
 

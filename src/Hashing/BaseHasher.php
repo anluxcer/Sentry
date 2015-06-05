@@ -19,7 +19,7 @@ abstract class BaseHasher
      * @param string $a
      * @param string $b
      *
-     * @return boolean
+     * @return bool
      */
     final protected function slowEquals($a, $b)
     {
