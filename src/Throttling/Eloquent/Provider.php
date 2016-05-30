@@ -87,6 +87,7 @@ class Provider implements ProviderInterface
 
         return $throttle;
     }
+
     /**
      * Finds a throttler by the given user ID.
      *

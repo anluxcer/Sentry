@@ -500,6 +500,7 @@ class SentryTest extends PHPUnit_Framework_TestCase
         $this->userProvider->shouldReceive('findById')->once()->andReturn(true);
         $this->assertTrue($this->sentry->findUserById(1));
     }
+
     public function testFindUserByLogin()
     {
         $this->userProvider->shouldReceive('findByLogin')->once()->andReturn(true);
