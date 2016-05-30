@@ -431,7 +431,7 @@ class User extends Model implements UserInterface
      */
     public function checkResetPasswordCode($resetCode)
     {
-        return ($this->reset_password_code == $resetCode);
+        return $this->reset_password_code == $resetCode;
     }
 
     /**

@@ -59,7 +59,6 @@ class NativeCookieTest extends PHPUnit_Framework_TestCase
             // We never get here if the above assertion
             // was false, save to proceed.
             return true;
-
         }))->once();
 
         $cookie->forever('bar');
@@ -98,7 +97,6 @@ class NativeCookieTest extends PHPUnit_Framework_TestCase
             // We never get here if the above assertion
             // was false, save to proceed.
             return true;
-
         }))->once();
 
         $cookie->forget();
